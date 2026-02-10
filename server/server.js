@@ -2,11 +2,12 @@ const express = require("express");
 const http = require("http");
 const cors = require("cors");
 const dotenv = require("dotenv");
+const path = require("path"); // Added for static file serving
 const connectDB = require("./config/db");
 const { initSocket } = require("./config/socket");
 
 // Load env vars
-dotenv.config();
+dotenv.config({ path: path.join(__dirname, ".env") });
 
 // Connect to MongoDB
 connectDB();
@@ -20,7 +21,7 @@ initSocket(server);
 // Middleware
 app.use(
     cors({
-        origin: process.env.CLIENT_URL || "http://localhost:5173",
+        origin: ["http://localhost:5173", "https://nirapulse.onrender.com"],
         credentials: true,
     })
 );
@@ -33,10 +34,28 @@ app.use("/api/messages", require("./routes/messageRoutes"));
 app.use("/api/users", require("./routes/userRoutes"));
 app.use("/api/friends", require("./routes/friendRoutes"));
 
-// Health check
 app.get("/api/health", (req, res) => {
     res.json({ status: "NiraPulse server is running" });
 });
+
+// --------------------------
+// Deployment Configuration
+// --------------------------
+const __dirname1 = path.resolve();
+
+if (process.env.NODE_ENV === "production") {
+    // Serve static files from the client/dist folder
+    app.use(express.static(path.join(__dirname1, "../client/dist")));
+
+    // Handle React routing, return all requests to index.html
+    app.get("*", (req, res) => {
+        res.sendFile(path.join(__dirname1, "../client/dist", "index.html"));
+    });
+} else {
+    app.get("/", (req, res) => {
+        res.send("API is running successfully");
+    });
+}
 
 // Global error handler
 app.use((err, req, res, next) => {

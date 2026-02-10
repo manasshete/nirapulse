@@ -13,7 +13,10 @@ export const SocketProvider = ({ children }) => {
 
     useEffect(() => {
         if (authUser) {
-            const newSocket = io("http://localhost:5000", {
+            // In production, "/" connects to the same domain as the valid page
+            const socketURL = import.meta.env.MODE === "development" ? "http://localhost:5000" : "/";
+
+            const newSocket = io(socketURL, {
                 query: { userId: authUser._id },
             });
 
