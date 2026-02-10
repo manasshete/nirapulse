@@ -1,0 +1,10 @@
+# Environment files
+.env
+server/.env
+client/.env
+
+# Node modules
+node_modules/
+
+# Vite / build outputs
+dist/
